@@ -161,8 +161,8 @@
             var id = $('#product-id').val()
             var qty = $('#product-qty').val()
             console.log(id, qty)
-            if (id == '' || qty == '' || id == null || qty == null) {
-                alert("Product and Quantity Field is required!")
+            if (id == '' || qty == '' || id == null || qty == null || qty <= 0) {
+                alert("Product and Quantity Field is required and Quantity should be a positive number!")
                 return false
             }
             if (!!prod_arr[id]) {
@@ -171,6 +171,18 @@
                     return false;
                 }
                 data = prod_arr[id]
+                console.log('data.quantity:', data.quantity);
+
+                if (data.quantity == 0) {
+                    alert('Product is out of stock!')
+                    return false;
+             }   else if (data.quantity < qty) {
+                    alert('Not enough stock for the product!')
+                    return false;
+                
+                }
+                // ... rest of the code
+        
                 var tr = $($('noscript#item-clone').html()).clone()
                 tr.find('[name="qty[]"]').val(qty)
                 tr.find('[name="product_id[]"]').val(id)

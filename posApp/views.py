@@ -176,9 +176,9 @@ def save_product(request):
         category = Category.objects.filter(id = data['category_id']).first()
         try:
             if (data['id']).isnumeric() and int(data['id']) > 0 :
-                save_product = Products.objects.filter(id = data['id']).update(code=data['code'], category_id=category, name=data['name'], description = data['description'], price = float(data['price']),status = data['status'])
+                save_product = Products.objects.filter(id = data['id']).update(code=data['code'], category_id=category, name=data['name'], description = data['description'], price = float(data['price']),status = data['status'], quantity = data['quantity'])
             else:
-                save_product = Products(code=data['code'], category_id=category, name=data['name'], description = data['description'], price = float(data['price']),status = data['status'])
+                save_product = Products(code=data['code'], category_id=category, name=data['name'], description = data['description'], price = float(data['price']),status = data['status'], quantity = data['quantity'])
                 save_product.save()
             resp['status'] = 'success'
             messages.success(request, 'Product Successfully saved.')
@@ -202,7 +202,7 @@ def pos(request):
     products = Products.objects.filter(status = 1)
     product_json = []
     for product in products:
-        product_json.append({'id':product.id, 'name':product.name, 'price':float(product.price)})
+        product_json.append({'id':product.id, 'name':product.name, 'price':float(product.price), 'quantity':product.quantity})
     context = {
         'page_title' : "Point of Sale",
         'products' : products,
@@ -248,13 +248,29 @@ def save_pos(request):
             total = float(qty) * float(price)
             print({'sale_id' : sale, 'product_id' : product, 'qty' : qty, 'price' : price, 'total' : total})
             salesItems(sale_id = sale, product_id = product, qty = qty, price = price, total = total).save()
-            i += int(1)
+            i += int(1)        
         resp['status'] = 'success'
         resp['sale_id'] = sale_id
+        qty = int(qty)
+        product.quantity -= qty
+        product.save()
         messages.success(request, "Sale Record has been saved.")
     except:
         resp['msg'] = "An error occured"
         print("Unexpected error:", sys.exc_info()[0])
+    # sale_items = {}
+    # for product_id, qty in zip(data.getlist('product_id[]'), data.getlist('qty[]')):
+    #     sale_items[product_id] = qty
+        
+    # for product_id, qty in sale_items.items():
+    #     product = Products.objects.get(id=product_id)
+    #     if qty > product.quantity:
+    #         # Return an error message indicating that the product is out of stock
+    #         resp = {'status':'failed','msg':'Product is out of stock'}
+    #         return HttpResponse(json.dumps(resp),content_type="application/json")
+    #     else:
+    #         # Proceed with the sale as usual
+
     return HttpResponse(json.dumps(resp),content_type="application/json")
 
 @login_required
